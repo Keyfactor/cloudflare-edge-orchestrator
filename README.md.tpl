@@ -1,25 +1,20 @@
-# Windows IIS Binding Orchestrator
-## Orchestrator
+# {{ name }}
+## {{ integration_type | capitalize }}
 
-The IIS Bindings orchestrator treats the certificates bound (actively in use) on a Microsoft Internet Information Server (IIS) as a Keyfactor certificate store. Inventory and Management functions are supported. The orchestrator replaces the IIS orchestrator (which did not support binding.)
+{{ description }}
 
 <!-- add integration specific information below -->
 *** 
-**IIS Binding Orchestrator Configuration**
+**Cloudflare Orchestrator Configuration**
 
 **Overview**
 
-The IIS Binding Orchestrator remotely manages certificates in a Windows Server local machine certificate store.
-The "Personal" (My) and "Web Hosting" Stores are supported.
-Only certificates that are bound to an IIS web site are managed.
-Unbound certificates are ignored.
+
 
 This agent implements three job types – Inventory, Management Add, and Management Remove. Below are the steps necessary to configure this AnyAgent.
 
-WinRM is used to remotely manage the certificate stores and IIS bindings. WinRM must be properly configured to allow
-the server running the orchestrator to manage the server running IIS.
 
-**1. Create the New Certificate Store Type for the IIS Binding Orchestrator**
+**1. Create the New Certificate Store Type for the Cloudflare Orchestrator**
 
 In Keyfactor Command create a new Certificate Store Type similar to the one below:
 
@@ -27,7 +22,7 @@ In Keyfactor Command create a new Certificate Store Type similar to the one belo
 CONFIG ELEMENT	| DESCRIPTION
 ------------------|------------------
 Name	|Descriptive name for the Store Type
-Short Name	|The short name that identifies the registered functionality of the orchestrator. Must be IISBinding
+Short Name	|The short name that identifies the registered functionality of the orchestrator. Must be IISWBin
 Custom Capability|Store type name orchestrator will register with. Must be "IISBindings".
 Needs Server	|Must be checked
 Blueprint Allowed	|Unchecked
@@ -41,23 +36,18 @@ Private Keys	|This determines if Keyfactor can send the private key associated w
 PFX Password Style	|This determines how the platform generate passwords to protect a PFX enrollment job that is delivered to the store.  This can be either Default (system generated) or Custom (user determined).
 Job Types	|Inventory, Add, and Remove are the supported job types. 
 
-![](images/screen1.gif)
 
 **Advanced Settings:**
-- **Custom Alias** – Can make Required, Optional or Forbidden based on the client preference
-- **Private Key Handling** – Required
 
-![](images/screen1-a.gif)
 
 **Custom Fields:**
 
-- **SPN With Port** – Defaults to false but some customers need for remote PowerShell Access
+
 
 Parameter Name|Parameter Type|Default Value|Required
 ---|---|---|---
 spnwithport|Boolean|false|No
 
-![](images/screen1-b.gif)
 
 **Entry Parameters:**
 This section must be configured with binding fields. The parameters will be populated with the appropriate data when creating a new certificate store.<br/>
@@ -66,7 +56,7 @@ This section must be configured with binding fields. The parameters will be popu
 - **IP Address** – Required (Adding an entry, Removing an entry, Reenrolling an entry). The IP address for the web site being bound to. Default is &quot;\*&quot; for all IP Addresses.
 - **Port** – Required (Adding an entry, Removing an entry, Reenrolling an entry). The port for the web site being bound to. Default is &quot;443&quot;.
 - **Host Name** – Optional. The host name for the web site being bound to.
-- *Protocol* - Required (Adding an entry, Removing an entry, Reenrolling an entry) 
+- **Protocol** - Required (Adding an entry, Removing an entry, Reenrolling an entry) 
    - https
    - http
 - **Sni Flag** – Optional. Set the SNI flag associated with the binding being created. Default is "0". Acceptable values are:
@@ -86,10 +76,10 @@ Protocol  |Multiple Choice|https|Yes
 
 ![](images/screen1-c.gif)
 
-**2. Register the IIS Binding Orchestrator with Keyfactor**
+**2. Register the Cloudflare Orchestrator with Keyfactor**
 See Keyfactor InstallingKeyfactorOrchestrators.pdf Documentation.  Get from your Keyfactor contact/representative.
 
-**3. Create an IIS Binding Certificate Store within Keyfactor Command**
+**3. Create an Cloudflare Certificate Store within Keyfactor Command**
 
 In Keyfactor Command create a new Certificate Store similar to the one below, selecting IIS With Binding as the Category and the parameters as described in &quot;Create the New Certificate Store Type for the New IIS-With-Bindings AnyAgent&quot;.
 
