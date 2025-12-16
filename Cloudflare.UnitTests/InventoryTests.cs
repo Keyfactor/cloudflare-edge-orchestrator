@@ -17,11 +17,11 @@ namespace Cloudflare.UnitTests;
 
 public class InventoryTests
 {
-    private Mock<ICertificateRetrievalService> _mockCertificateRetrievalService = new();
-    private Mock<ICloudflareClient> _mockCloudflareClient = new();
-    
-    private readonly Mock<SubmitInventoryUpdate> _mockSubmitInventoryUpdate = new ();
+    private readonly Mock<ICertificateRetrievalService> _mockCertificateRetrievalService;
+    private readonly Mock<ICloudflareClient> _mockCloudflareClient;
+    private readonly Mock<SubmitInventoryUpdate> _mockSubmitInventoryUpdate;
     private readonly Inventory _sut;
+    private readonly string _testCertificatePem;
     
     public InventoryTests(ITestOutputHelper output)
     {
@@ -30,357 +30,311 @@ public class InventoryTests
                 .SetMinimumLevel(LogLevel.Trace));
         var logger = loggerFactory.CreateLogger<InventoryTests>();
         
+        _mockCertificateRetrievalService = new Mock<ICertificateRetrievalService>();
+        _mockCloudflareClient = new Mock<ICloudflareClient>();
+        _mockSubmitInventoryUpdate = new Mock<SubmitInventoryUpdate>();
+        
         _sut = new Inventory(logger, _mockCloudflareClient.Object, _mockCertificateRetrievalService.Object);
+        
+        // Load test certificate once for all tests
+        _testCertificatePem = LoadCertificate("example_certificate.crt");
     }
     
     [Fact]
-    public async Task ProcessJob_SuccessfulRun_ReturnsJobSuccess()
+    public void ProcessJob_SuccessfulRun_ReturnsJobSuccess()
     {
         // Arrange
         var config = CreateTestConfiguration();
-
-        var certificatePack = new GetCertificatePacksResponse
-        {
-            ResultInfo = new ResultInfo
-            {
-                Count = 1,
-                TotalCount = 1,
-                PerPage = 1,
-                TotalPages = 1,
-            },
-            Result = new List<GetCertificatePackResultItem>
-            {
-                new ()
-                {
-                    Hosts = new List<string> { "test.example.com" },
-                }
-            },
-        };
-
-        var certificate = await LoadCertificateAsync("example_certificate.crt");
-
-        _mockCloudflareClient.Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
-            .ReturnsAsync(certificatePack);
-        
-        _mockCertificateRetrievalService.Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateX509Certificate(certificate));
+        SetupSuccessfulCertificatePackResponse("test.example.com");
+        SetupSuccessfulCertificateRetrieval();
         
         // Act
         var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
         
         // Assert
-        AssertInventorySubmittedWith("test.example.com", certificate);
-        AssertJobSuccess(result, "Successfully inventoried certificates from Cloudflare Edge.");
+        result.ShouldBeSuccess("Successfully inventoried certificates from Cloudflare Edge.");
+        AssertInventoryContains("test.example.com", _testCertificatePem);
     }
     
     [Fact]
-    public async Task ProcessJob_NoCertificatePacks_ReturnsJobSuccess()
+    public void ProcessJob_NoCertificatePacks_ReturnsJobSuccess()
     {
         // Arrange
         var config = CreateTestConfiguration();
-
-        var certificatePack = new GetCertificatePacksResponse
-        {
-            ResultInfo = new ResultInfo
-            {
-                Count = 0,
-                TotalCount = 0,
-                PerPage = 1,
-                TotalPages = 1,
-            },
-        };
-        _mockCloudflareClient.Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
-            .ReturnsAsync(certificatePack);
+        SetupEmptyCertificatePackResponse();
         
         // Act
         var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
         
         // Assert
-        AssertSubmittedInventoryCount(0);
-        AssertJobSuccess(result, "Successfully inventoried certificates from Cloudflare Edge.");
+        result.ShouldBeSuccess("Successfully inventoried certificates from Cloudflare Edge.");
+        AssertInventoryCount(0);
     }
     
     [Fact]
-    public async Task ProcessJob_MultiPagedResponses_ReturnsAllCertificates()
+    public void ProcessJob_MultiPagedResponses_ReturnsAllCertificates()
     {
         // Arrange
         var config = CreateTestConfiguration();
-
-        var certificatePack1 = new GetCertificatePacksResponse
-        {
-            ResultInfo = new ResultInfo
-            {
-                Count = 1,
-                TotalCount = 1,
-                PerPage = 1,
-                TotalPages = 2,
-            },
-            Result = new List<GetCertificatePackResultItem>
-            {
-                new ()
-                {
-                    Hosts = new List<string> { "test.example.com" },
-                }
-            },
-        };
-        
-        var certificatePack2 = new GetCertificatePacksResponse
-        {
-            ResultInfo = new ResultInfo
-            {
-                Count = 1,
-                TotalCount = 1,
-                PerPage = 1,
-                TotalPages = 2,
-            },
-            Result = new List<GetCertificatePackResultItem>
-            {
-                new ()
-                {
-                    Hosts = new List<string> { "foo.example.com" },
-                }
-            },
-        };
-
-        var certificate = await LoadCertificateAsync("example_certificate.crt");
-
-        _mockCloudflareClient.SetupSequence(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
-            .ReturnsAsync(certificatePack1)
-            .ReturnsAsync(certificatePack2);
-        
-        _mockCertificateRetrievalService.Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateX509Certificate(certificate));
+        SetupPagedCertificatePackResponses(
+            new[] { "test.example.com" },
+            new[] { "foo.example.com" }
+        );
+        SetupSuccessfulCertificateRetrieval();
         
         // Act
         var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
         
         // Assert
-        AssertSubmittedInventoryCount(2);
-        AssertInventorySubmittedWith("test.example.com", certificate);
-        AssertInventorySubmittedWith("foo.example.com", certificate);
-        AssertJobSuccess(result, "Successfully inventoried certificates from Cloudflare Edge.");
+        result.ShouldBeSuccess("Successfully inventoried certificates from Cloudflare Edge.");
+        AssertInventoryCount(2);
+        AssertInventoryContains("test.example.com", _testCertificatePem);
+        AssertInventoryContains("foo.example.com", _testCertificatePem);
     }
     
     [Theory]
     [InlineData("*.example.com")]
     [InlineData("sni.cloudflaressl.com")]
-    public async Task ProcessJob_HostsIncludesExcludedDomain_DoesNotInventoryExcludedDomain(string excludedDomains)
+    public void ProcessJob_HostsIncludesExcludedDomain_DoesNotInventoryExcludedDomain(string excludedDomain)
     {
         // Arrange
         var config = CreateTestConfiguration();
-
-        var certificatePack = new GetCertificatePacksResponse
-        {
-            ResultInfo = new ResultInfo
-            {
-                Count = 1,
-                TotalCount = 1,
-                PerPage = 1,
-                TotalPages = 1,
-            },
-            Result = new List<GetCertificatePackResultItem>
-            {
-                new ()
-                {
-                    Hosts = new List<string> { "test.example.com", excludedDomains },
-                }
-            },
-        };
-
-        var certificate = await LoadCertificateAsync("example_certificate.crt");
-
-        _mockCloudflareClient.Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
-            .ReturnsAsync(certificatePack);
-        
-        _mockCertificateRetrievalService.Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateX509Certificate(certificate));
+        SetupSuccessfulCertificatePackResponse("test.example.com", excludedDomain);
+        SetupSuccessfulCertificateRetrieval();
         
         // Act
         var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
         
         // Assert
-        AssertSubmittedInventoryCount(1);
-        AssertInventorySubmittedWith("test.example.com", certificate);
-        // We should not find the excluded domain in the inventory
-        AssertJobSuccess(result, "Successfully inventoried certificates from Cloudflare Edge.");
+        result.ShouldBeSuccess("Successfully inventoried certificates from Cloudflare Edge.");
+        AssertInventoryCount(1);
+        AssertInventoryContains("test.example.com", _testCertificatePem);
+        AssertInventoryDoesNotContain(excludedDomain);
     }
     
     [Fact]
-    public async Task ProcessJob_CloudflareRequestExceptionThrown_ReturnsJobFailure()
+    public void ProcessJob_OnlyWildcardAndSniDomains_ReturnsEmptyInventory()
     {
         // Arrange
         var config = CreateTestConfiguration();
-
-        var exception = new CloudflareRequestException("Whoops!");
-
-        var certificate = await LoadCertificateAsync("example_certificate.crt");
-
-        _mockCloudflareClient.Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
-            .ThrowsAsync(exception);
         
-        _mockCertificateRetrievalService.Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(CreateX509Certificate(certificate));
-        
-        // Act
-        var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
-        
-        // Assert
-        AssertInventoryNotSubmitted();
-        AssertJobFailure(result, exception.Message);
-    }
-    
-    [Fact]
-    public async Task ProcessJob_CertificateRetrievalExceptionThrown_ReturnsJobFailure()
-    {
-        // Arrange
-        var config = CreateTestConfiguration();
-
         var certificatePack = new GetCertificatePacksResponse
         {
-            ResultInfo = new ResultInfo
-            {
-                Count = 1,
-                TotalCount = 1,
-                PerPage = 1,
-                TotalPages = 1,
-            },
+            ResultInfo = new ResultInfo { Count = 1, TotalCount = 1, PerPage = 1, TotalPages = 1 },
             Result = new List<GetCertificatePackResultItem>
             {
-                new ()
-                {
-                    Hosts = new List<string> { "test.example.com" },
-                }
+                new() { Hosts = new List<string> { "*.example.com", "sni.cloudflaressl.com" } }
             },
         };
 
-        var exception = new CertificateRetrievalException("Whoops!");
-
-        _mockCloudflareClient.Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
+        _mockCloudflareClient
+            .Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
             .ReturnsAsync(certificatePack);
-
-        _mockCertificateRetrievalService.Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
-            .ThrowsAsync(exception);
         
         // Act
         var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
         
         // Assert
-        AssertInventoryNotSubmitted();
-        AssertJobFailure(result, exception.Message);
-    }
-    
-    [Fact]
-    public async Task ProcessJob_UnexpectedExceptionThrown_ReturnsJobFailure()
-    {
-        // Arrange
-        var config = CreateTestConfiguration();
-
-        var certificatePack = new GetCertificatePacksResponse
-        {
-            ResultInfo = new ResultInfo
-            {
-                Count = 1,
-                TotalCount = 1,
-                PerPage = 1,
-                TotalPages = 1,
-            },
-            Result = new List<GetCertificatePackResultItem>
-            {
-                new ()
-                {
-                    Hosts = new List<string> { "test.example.com" },
-                }
-            },
-        };
-
-        var exception = new Exception("Did not expected that to happen!");
-
-        _mockCloudflareClient.Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
-            .ReturnsAsync(certificatePack);
-
-        _mockCertificateRetrievalService.Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
-            .ThrowsAsync(exception);
-        
-        // Act
-        var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
-        
-        // Assert
-        AssertInventoryNotSubmitted();
-        AssertJobFailure(result, $"An unexpected error occurred while inventorying certificates from Cloudflare Edge: {exception.Message}");
-    }
-    
-    #region Assertions
-
-    private void AssertJobSuccess(JobResult result, string expectedMessage)
-    {
-        Assert.NotNull(result);
-        
         Assert.Equal(OrchestratorJobStatusJobResult.Success, result.Result);
-        Assert.Equal(expectedMessage, result.FailureMessage);
+        AssertInventoryCount(0);
     }
     
-    private void AssertJobFailure(JobResult result, string expectedMessage)
+    [Fact]
+    public void ProcessJob_DuplicateHostsAcrossPages_InventoriesOnlyOnce()
     {
-        Assert.NotNull(result);
+        // Arrange
+        var config = CreateTestConfiguration();
         
-        Assert.Equal(OrchestratorJobStatusJobResult.Failure, result.Result);
-        Assert.Equal(expectedMessage, result.FailureMessage);
-    }
+        var page1 = new GetCertificatePacksResponse
+        {
+            ResultInfo = new ResultInfo { Count = 1, TotalCount = 2, PerPage = 1, TotalPages = 2 },
+            Result = new List<GetCertificatePackResultItem>
+            {
+                new() { Hosts = new List<string> { "test.example.com", "foo.example.com" } }
+            },
+        };
+        
+        var page2 = new GetCertificatePacksResponse
+        {
+            ResultInfo = new ResultInfo { Count = 1, TotalCount = 2, PerPage = 1, TotalPages = 2 },
+            Result = new List<GetCertificatePackResultItem>
+            {
+                new() { Hosts = new List<string> { "test.example.com", "bar.example.com" } }
+            },
+        };
 
-    private void AssertInventoryNotSubmitted()
-    {
-        var invocations = _mockSubmitInventoryUpdate.Invocations;
+        _mockCloudflareClient
+            .SetupSequence(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(page1)
+            .ReturnsAsync(page2);
         
-        // Assert no calls were made to Command
-        Assert.Equal(0, invocations.Count);
+        SetupSuccessfulCertificateRetrieval();
+        
+        // Act
+        var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
+        
+        // Assert
+        Assert.Equal(OrchestratorJobStatusJobResult.Success, result.Result);
+        AssertInventoryCount(3); // test.example.com (once), foo.example.com, bar.example.com
+        
+        // Verify GetHostCertificate was only called 3 times (not 4)
+        _mockCertificateRetrievalService.Verify(
+            x => x.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()), 
+            Times.Exactly(3));
     }
     
-    private void AssertSubmittedInventoryCount(int expectedCount)
+    [Fact]
+    public void ProcessJob_CloudflareRequestExceptionThrown_ReturnsJobFailure()
     {
-        var invocations = _mockSubmitInventoryUpdate.Invocations;
+        // Arrange
+        var config = CreateTestConfiguration();
+        var exception = new CloudflareRequestException("Whoops!");
         
-        // Assert only a single update call was made to Command
-        Assert.Equal(1, invocations.Count);
+        _mockCloudflareClient
+            .Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
+            .ThrowsAsync(exception);
         
-        var reportedInventory = invocations[0].Arguments[0] as List<CurrentInventoryItem>;
+        // Act
+        var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
         
-        Assert.NotNull(reportedInventory);
-        
-        Assert.True(expectedCount == reportedInventory!.Count, $"Expected inventory to be submitted with {expectedCount} certificate(s). Found: {reportedInventory!.Count} certificate(s).");
+        // Assert
+        result.ShouldBeFailure(exception.Message);
+        AssertInventoryNotSubmitted();
     }
-
-    private void AssertInventorySubmittedWith(string expectedAlias, string expectedCertificate)
+    
+    [Fact]
+    public void ProcessJob_CertificateRetrievalExceptionThrown_ReturnsJobFailure()
     {
-        var invocations = _mockSubmitInventoryUpdate.Invocations;
+        // Arrange
+        var config = CreateTestConfiguration();
+        var exception = new CertificateRetrievalException("Whoops!");
         
-        // Assert only a single update call was made to Command
-        Assert.Equal(1, invocations.Count);
+        SetupSuccessfulCertificatePackResponse("test.example.com");
+        _mockCertificateRetrievalService
+            .Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(exception);
         
-        var reportedInventory = invocations[0].Arguments[0] as List<CurrentInventoryItem>;
+        // Act
+        var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
         
-        Assert.NotNull(reportedInventory);
-        Assert.NotEmpty(reportedInventory);
+        // Assert
+        result.ShouldBeFailure(exception.Message);
+        AssertInventoryNotSubmitted();
+    }
+    
+    [Fact]
+    public void ProcessJob_UnexpectedExceptionThrown_ReturnsJobFailure()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var exception = new Exception("Did not expected that to happen!");
         
-        var certificate = reportedInventory!.SingleOrDefault(p => p.Alias == expectedAlias);
-
-        if (certificate == null)
+        SetupSuccessfulCertificatePackResponse("test.example.com");
+        _mockCertificateRetrievalService
+            .Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
+            .ThrowsAsync(exception);
+        
+        // Act
+        var result = _sut.ProcessJob(config, _mockSubmitInventoryUpdate.Object);
+        
+        // Assert
+        result.ShouldBeFailure($"An unexpected error occurred while inventorying certificates from Cloudflare Edge: {exception.Message}");
+        AssertInventoryNotSubmitted();
+    }
+    
+    #region Mock Setup Helpers
+    
+    private void SetupSuccessfulCertificatePackResponse(params string[] hosts)
+    {
+        var response = CertificatePackResponseBuilder.Create()
+            .WithHosts(hosts)
+            .Build();
+            
+        _mockCloudflareClient
+            .Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(response);
+    }
+    
+    private void SetupEmptyCertificatePackResponse()
+    {
+        var response = CertificatePackResponseBuilder.CreateEmpty().Build();
+        
+        _mockCloudflareClient
+            .Setup(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()))
+            .ReturnsAsync(response);
+    }
+    
+    private void SetupPagedCertificatePackResponses(params string[][] hostsPerPage)
+    {
+        var sequence = _mockCloudflareClient
+            .SetupSequence(p => p.GetCertificatePacks(It.IsAny<string>(), It.IsAny<int>()));
+        
+        foreach (var hosts in hostsPerPage)
         {
-            Assert.True(false, $"Certificate alias {expectedAlias} not found in reported inventory. Found: {string.Join(", ", reportedInventory!.Select(p => p.Alias))}");
+            var response = CertificatePackResponseBuilder.Create()
+                .WithPageInfo(totalPages: hostsPerPage.Length)
+                .WithHosts(hosts)
+                .Build();
+                
+            sequence.ReturnsAsync(response);
         }
-
-        var match = certificate!.Certificates.SingleOrDefault(p => p == expectedCertificate);
-
-        if (match == null)
-        {
-            Assert.True(false, $"Certificate data for alias {expectedAlias} does not match expected certificate. Expected {expectedCertificate}, Found: {string.Join("\n", certificate.Certificates)}");
-        }
+    }
+    
+    private void SetupSuccessfulCertificateRetrieval()
+    {
+        _mockCertificateRetrievalService
+            .Setup(p => p.GetHostCertificate(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(TestDataHelper.CreateX509Certificate(_testCertificatePem));
     }
     
     #endregion
     
+    #region Assertions
+
+    private void AssertInventoryNotSubmitted()
+    {
+        _mockSubmitInventoryUpdate.Verify(
+            x => x.Invoke(It.IsAny<List<CurrentInventoryItem>>()),
+            Times.Never);
+    }
+    
+    private void AssertInventoryCount(int expectedCount)
+    {
+        var inventory = GetSubmittedInventory();
+        Assert.Equal(expectedCount, inventory.Count);
+    }
+
+    private void AssertInventoryContains(string expectedAlias, string expectedCertificate)
+    {
+        var inventory = GetSubmittedInventory();
+        
+        var certificate = inventory.SingleOrDefault(p => p.Alias == expectedAlias);
+        Assert.NotNull(certificate);
+        
+        Assert.Contains(expectedCertificate, certificate!.Certificates);
+    }
+    
+    private void AssertInventoryDoesNotContain(string alias)
+    {
+        var inventory = GetSubmittedInventory();
+        Assert.DoesNotContain(inventory, p => p.Alias == alias);
+    }
+    
+    private List<CurrentInventoryItem> GetSubmittedInventory()
+    {
+        _mockSubmitInventoryUpdate.Verify(
+            x => x.Invoke(It.IsAny<List<CurrentInventoryItem>>()),
+            Times.Once);
+        
+        var invocation = _mockSubmitInventoryUpdate.Invocations.Single();
+        return (List<CurrentInventoryItem>)invocation.Arguments[0];
+    }
+    
+    #endregion
     
     #region Test Data Helpers
-    private static async Task<string> LoadCertificateAsync(string filename)
+    
+    private static string LoadCertificate(string filename)
     {
         var path = Path.Combine(
             Directory.GetCurrentDirectory(),
@@ -388,18 +342,7 @@ public class InventoryTests
             "example_responses",
             filename);
 
-        return await File.ReadAllTextAsync(path);
-    }
-
-    private static X509Certificate2 CreateX509Certificate(string pem)
-    {
-        var base64 = pem
-            .Replace("-----BEGIN CERTIFICATE-----", "")
-            .Replace("-----END CERTIFICATE-----", "")
-            .Replace("\r", "")
-            .Replace("\n", "");
-
-        return new X509Certificate2(Convert.FromBase64String(base64));
+        return File.ReadAllText(path);
     }
 
     private static InventoryJobConfiguration CreateTestConfiguration() =>
@@ -415,3 +358,94 @@ public class InventoryTests
     
     #endregion
 }
+
+#region Test Builders
+
+internal class CertificatePackResponseBuilder
+{
+    private int _count = 1;
+    private int _totalCount = 1;
+    private int _perPage = 1;
+    private int _totalPages = 1;
+    private List<string> _hosts = new();
+    
+    public static CertificatePackResponseBuilder Create() => new();
+    
+    public static CertificatePackResponseBuilder CreateEmpty()
+    {
+        return new CertificatePackResponseBuilder
+        {
+            _count = 0,
+            _totalCount = 0,
+            _hosts = new List<string>()
+        };
+    }
+    
+    public CertificatePackResponseBuilder WithPageInfo(int count = 1, int totalCount = 1, int perPage = 1, int totalPages = 1)
+    {
+        _count = count;
+        _totalCount = totalCount;
+        _perPage = perPage;
+        _totalPages = totalPages;
+        return this;
+    }
+    
+    public CertificatePackResponseBuilder WithHosts(params string[] hosts)
+    {
+        _hosts = hosts.ToList();
+        return this;
+    }
+    
+    public GetCertificatePacksResponse Build()
+    {
+        return new GetCertificatePacksResponse
+        {
+            ResultInfo = new ResultInfo
+            {
+                Count = _count,
+                TotalCount = _totalCount,
+                PerPage = _perPage,
+                TotalPages = _totalPages,
+            },
+            Result = _hosts.Any() 
+                ? new List<GetCertificatePackResultItem>
+                {
+                    new() { Hosts = _hosts }
+                }
+                : null
+        };
+    }
+}
+
+internal static class TestDataHelper
+{
+    public static X509Certificate2 CreateX509Certificate(string pem)
+    {
+        var base64 = pem
+            .Replace("-----BEGIN CERTIFICATE-----", "")
+            .Replace("-----END CERTIFICATE-----", "")
+            .Replace("\r", "")
+            .Replace("\n", "");
+
+        return new X509Certificate2(Convert.FromBase64String(base64));
+    }
+}
+
+internal static class JobResultAssertions
+{
+    public static void ShouldBeSuccess(this JobResult result, string expectedMessage)
+    {
+        Assert.NotNull(result);
+        Assert.Equal(OrchestratorJobStatusJobResult.Success, result.Result);
+        Assert.Equal(expectedMessage, result.FailureMessage);
+    }
+    
+    public static void ShouldBeFailure(this JobResult result, string expectedMessage)
+    {
+        Assert.NotNull(result);
+        Assert.Equal(OrchestratorJobStatusJobResult.Failure, result.Result);
+        Assert.Equal(expectedMessage, result.FailureMessage);
+    }
+}
+
+#endregion
