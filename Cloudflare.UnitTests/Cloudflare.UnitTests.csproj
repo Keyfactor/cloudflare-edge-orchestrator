@@ -26,4 +26,10 @@
       <ProjectReference Include="..\Cloudflare\Cloudflare.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="fixtures\example_responses\example_certificate.crt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

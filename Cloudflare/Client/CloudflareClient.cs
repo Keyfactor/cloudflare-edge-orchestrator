@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using Cloudflare.Exceptions;
 using Cloudflare.Models.Cloudflare;
 using Keyfactor.Logging;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Keyfactor.Extensions.Orchestrator.Cloudflare.Client
 {
-    public class CloudflareClient
+    public class CloudflareClient : ICloudflareClient
     {
         private readonly ILogger _logger;
         private readonly HttpClient _httpClient;
@@ -36,16 +37,25 @@ namespace Keyfactor.Extensions.Orchestrator.Cloudflare.Client
             
             _logger.LogDebug($"Getting certificate packs for zone {zoneId} from endpoint {endpoint}. Page: {page}");
 
-            var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-            var response = await _httpClient.SendAsync(request);
+            string content = null;
             
-            _logger.LogTrace($"Endpoint {endpoint} returned status code {response.StatusCode}");
-            
-            var content = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                throw new Exception($"Failed to get certificate packs. Endpoint {endpoint} returned status code {response.StatusCode}. Error content: {content}");
+                var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                var response = await _httpClient.SendAsync(request);
+                
+                content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new CloudflareRequestException($"Failed to get certificate packs. Endpoint {endpoint} returned status code {response.StatusCode}. Error content: {content}");
+                }
+                
+                _logger.LogTrace($"Endpoint {endpoint} returned status code {response.StatusCode}");
+            }
+            catch (Exception ex) when (ex is not CloudflareRequestException)
+            {
+                throw new CloudflareRequestException(ex);
             }
             
             _logger.LogTrace($"Response content returned: {content}");
