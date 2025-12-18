@@ -1,7 +1,44 @@
 {
-  "$schema": "https://keyfactor.github.io/integration-manifest-schema.json",
+  "$schema": "https://keyfactor.github.io/v2/integration-manifest-schema.json",
   "integration_type": "orchestrator",
-  "name": "Cloudflare Orchestrator",
-  "status": "Development",
-  "description": ""
+  "name": "Cloudflare Edge Orchestrator",
+  "status": "prototype",
+  "support_level": "kf-supported",
+  "update_catalog": true,
+  "link_github": false,
+  "release_project": "Cloudflare/Cloudflare.csproj",
+  "release_dir": "Cloudflare/bin/Release",
+  "description": "The Cloudflare Edge Orchestrator integration enables Keyfactor to inventory SSL/TLS certificates from Cloudflare's edge network.",
+  "about": {
+    "orchestrator": {
+      "UOFramework": "11.0",
+      "keyfactor_platform_version": "11.0",
+      "store_types": [
+        {
+          "Name": "Cloudflare Edge",
+          "ShortName": "CloudflareEdge",
+          "LocalStore": false,
+          "SupportedOperations": {
+            "Add": false,
+            "Create": false,
+            "Discovery": false,
+            "Enrollment": false,
+            "Remove": false
+          },
+          "EntryParameters": [],
+          "StorePathType": "",
+          "StorePathValue": "",
+          "PrivateKeyAllowed": "Forbidden",
+          "ClientMachineDescription": "The account identifier for the Cloudflare account to be used for connecting to the Cloudflare API.",
+          "StorePathDescription": "The zone identifier for the Cloudflare zone where the edge certificates are located.",
+          "JobProperties": [],
+          "ServerRequired": true,
+          "PowerShell": false,
+          "BlueprintAllowed": false,
+          "CustomAliasAllowed": "Forbidden",
+          "Properties": []
+        }
+      ]
+    }
+  }
 }
