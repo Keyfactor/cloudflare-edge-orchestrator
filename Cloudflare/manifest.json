@@ -1,13 +1,9 @@
 ﻿{
   "extensions": {
     "Keyfactor.Orchestrators.Extensions.IOrchestratorJobExtension": {
-      "CertStores.IISBindings.Inventory": {
-        "assemblypath": "IISWithBindings.dll",
-        "TypeFullName": "Keyfactor.Extensions.Orchestrator.IISWithBinding.Jobs.Inventory"
-      },
-      "CertStores.IISBindings.Management": {
-        "assemblypath": "IISWithBindings.dll",
-        "TypeFullName": "Keyfactor.Extensions.Orchestrator.IISWithBinding.Jobs.Management"
+      "CertStores.CloudflareEdge.Inventory": {
+        "assemblypath": "Cloudflare.dll",
+        "TypeFullName": "Keyfactor.Extensions.Orchestrator.CloudflareEdge.Jobs.Inventory"
       }
     }
   }
