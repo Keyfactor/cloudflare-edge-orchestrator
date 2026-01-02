@@ -17,6 +17,7 @@
         {
           "Name": "Cloudflare Edge",
           "ShortName": "CloudflareEdge",
+          "Capability": "CloudflareEdge",
           "LocalStore": false,
           "SupportedOperations": {
             "Add": false,
@@ -36,7 +37,12 @@
           "PowerShell": false,
           "BlueprintAllowed": false,
           "CustomAliasAllowed": "Forbidden",
-          "Properties": []
+          "Properties": [],
+          "PasswordOptions": {
+            "EntrySupported": false,
+            "StoreRequired": false,
+            "Style": "Default"
+          }
         }
       ]
     }
