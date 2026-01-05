@@ -4,7 +4,7 @@
 
 <p align="center">
   <!-- Badges -->
-<img src="https://img.shields.io/badge/integration_status-prototype-3D1973?style=flat-square" alt="Integration Status: prototype" />
+<img src="https://img.shields.io/badge/integration_status-production-3D1973?style=flat-square" alt="Integration Status: production" />
 <a href="https://github.com/Keyfactor/cloudflare-edge-orchestrator/releases"><img src="https://img.shields.io/github/v/release/Keyfactor/cloudflare-edge-orchestrator?style=flat-square" alt="Release" /></a>
 <img src="https://img.shields.io/github/issues/Keyfactor/cloudflare-edge-orchestrator?style=flat-square" alt="Issues" />
 <img src="https://img.shields.io/github/downloads/Keyfactor/cloudflare-edge-orchestrator/total?style=flat-square&label=downloads&color=28B905" alt="GitHub Downloads (all assets, all releases)" />
@@ -31,15 +31,7 @@
 
 ## Overview
 
-The Cloudflare Edge Orchestrator Extension is an integration that can inventory [Cloudflare Edge certificates](https://developers.cloudflare.com/ssl/concepts/#edge-certificate).
-
-> IMPORTANT: In order for certificates to be inventoried, the Universal Orchestrator **must** be able to reach the server that hosts the certificate. Cloudflare's API does not return the certificate contents, so the Universal Orchestrator must pull the certificate from the server directly.
-
-### Authentication and Authorization
-
-When configuring the certificate store, the server password can be either an account API token or a user API token ([guide on how to create an API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)).
-
-In order to read certificate pack information from the API, the API token must have at least `Account:SSL and Certificates:Read` privileges ([List Certificate Packs](https://developers.cloudflare.com/api/resources/ssl/subresources/certificate_packs/methods/list/)).
+TODO Overview is a required section
 
 
 
@@ -57,6 +49,8 @@ The Cloudflare Edge Universal Orchestrator extension is supported by Keyfactor. 
 Before installing the Cloudflare Edge Universal Orchestrator extension, we recommend that you install [kfutil](https://github.com/Keyfactor/kfutil). Kfutil is a command-line tool that simplifies the process of creating store types, installing extensions, and instantiating certificate stores in Keyfactor Command.
 
 
+TODO Requirements is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
+
 
 ## CloudflareEdge Certificate Store Type
 
@@ -64,16 +58,26 @@ To use the Cloudflare Edge Universal Orchestrator extension, you **must** create
 
 
 
-TODO Overview is a required section
-TODO Global Store Type Section is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
-
+The Cloudflare Edge Orchestrator Extension is an integration that can inventory [Cloudflare Edge certificates](https://developers.cloudflare.com/ssl/concepts/#edge-certificate).
 
 
 
 
 #### Cloudflare Edge Requirements
 
-TODO Requirements is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
+To inventory certificates, the Universal Orchestrator instance **must** be able to reach the server hosting the certificate over the network.  
+Cloudflare's API does not provide the certificate contents, so the extension fetches the certificate directly from the server using a TLS handshake (via OpenSSL).
+
+#### Authentication and Authorization
+
+When configuring the certificate store, the server password will contain the API token used to access the Cloudflare API. This can be either an **Account API Token** or a **User API Token**. See the [guide on how to create an API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/).
+
+The API token must have the following permissions:
+
+|Permission|Required|Documentation|
+|--|--|--|
+|Account:SSL|Yes|[List Certificate Packs](https://developers.cloudflare.com/api/resources/ssl/subresources/certificate_packs/methods/list/)|
+|Certificates:Read|Yes|[List Certificate Packs](https://developers.cloudflare.com/api/resources/ssl/subresources/certificate_packs/methods/list/)|
 
 
 
@@ -205,13 +209,13 @@ the Keyfactor Command Portal
 > The above installation steps can be supplemented by the [official Command documentation](https://software.keyfactor.com/Core-OnPrem/Current/Content/InstallingAgents/NetCoreOrchestrator/CustomExtensions.htm?Highlight=extensions).
 
 
+## Post Installation
+
+TODO Post Installation is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
+
 
 ## Defining Certificate Stores
 
-
-TODO Global Store Type Section is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
-
-TODO Certificate Store Configuration is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
 
 
 ### Store Creation
@@ -275,12 +279,8 @@ TODO Certificate Store Configuration is an optional section. If this section doe
 
 
 ## Discovering Certificate Stores with the Discovery Job
+TODO Discovery is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
 
-### Cloudflare Edge Discovery Job
-TODO Global Store Type Section is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
-
-
-TODO Discovery Job Configuration is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
 
 
 
