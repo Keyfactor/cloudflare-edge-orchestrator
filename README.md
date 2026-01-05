@@ -31,7 +31,7 @@
 
 ## Overview
 
-TODO Overview is a required section
+The Cloudflare Edge Orchestrator Extension is an integration that can inventory [Cloudflare Edge certificates](https://developers.cloudflare.com/ssl/concepts/#edge-certificate).
 
 
 
@@ -49,26 +49,10 @@ The Cloudflare Edge Universal Orchestrator extension is supported by Keyfactor. 
 Before installing the Cloudflare Edge Universal Orchestrator extension, we recommend that you install [kfutil](https://github.com/Keyfactor/kfutil). Kfutil is a command-line tool that simplifies the process of creating store types, installing extensions, and instantiating certificate stores in Keyfactor Command.
 
 
-TODO Requirements is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
-
-
-## CloudflareEdge Certificate Store Type
-
-To use the Cloudflare Edge Universal Orchestrator extension, you **must** create the CloudflareEdge Certificate Store Type. This only needs to happen _once_ per Keyfactor Command instance.
-
-
-
-The Cloudflare Edge Orchestrator Extension is an integration that can inventory [Cloudflare Edge certificates](https://developers.cloudflare.com/ssl/concepts/#edge-certificate).
-
-
-
-
-#### Cloudflare Edge Requirements
-
 To inventory certificates, the Universal Orchestrator instance **must** be able to reach the server hosting the certificate over the network.  
 Cloudflare's API does not provide the certificate contents, so the extension fetches the certificate directly from the server using a TLS handshake (via OpenSSL).
 
-#### Authentication and Authorization
+### Authentication and Authorization
 
 When configuring the certificate store, the server password will contain the API token used to access the Cloudflare API. This can be either an **Account API Token** or a **User API Token**. See the [guide on how to create an API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/).
 
@@ -78,6 +62,16 @@ The API token must have the following permissions:
 |--|--|--|
 |Account:SSL|Yes|[List Certificate Packs](https://developers.cloudflare.com/api/resources/ssl/subresources/certificate_packs/methods/list/)|
 |Certificates:Read|Yes|[List Certificate Packs](https://developers.cloudflare.com/api/resources/ssl/subresources/certificate_packs/methods/list/)|
+
+
+## CloudflareEdge Certificate Store Type
+
+To use the Cloudflare Edge Universal Orchestrator extension, you **must** create the CloudflareEdge Certificate Store Type. This only needs to happen _once_ per Keyfactor Command instance.
+
+
+
+
+
 
 
 
@@ -209,10 +203,6 @@ the Keyfactor Command Portal
 > The above installation steps can be supplemented by the [official Command documentation](https://software.keyfactor.com/Core-OnPrem/Current/Content/InstallingAgents/NetCoreOrchestrator/CustomExtensions.htm?Highlight=extensions).
 
 
-## Post Installation
-
-TODO Post Installation is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
-
 
 ## Defining Certificate Stores
 
@@ -276,10 +266,6 @@ TODO Post Installation is an optional section. If this section doesn't seem nece
 
 
 > The content in this section can be supplemented by the [official Command documentation](https://software.keyfactor.com/Core-OnPrem/Current/Content/ReferenceGuide/Certificate%20Stores.htm?Highlight=certificate%20store).
-
-
-## Discovering Certificate Stores with the Discovery Job
-TODO Discovery is an optional section. If this section doesn't seem necessary on initial glance, please delete it. Refer to the docs on [Confluence](https://keyfactor.atlassian.net/wiki/x/SAAyHg) for more info
 
 
 
