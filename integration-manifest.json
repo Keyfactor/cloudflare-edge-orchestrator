@@ -2,7 +2,7 @@
   "$schema": "https://keyfactor.github.io/v2/integration-manifest-schema.json",
   "integration_type": "orchestrator",
   "name": "Cloudflare Edge Orchestrator",
-  "status": "prototype",
+  "status": "production",
   "support_level": "kf-supported",
   "update_catalog": true,
   "link_github": false,
