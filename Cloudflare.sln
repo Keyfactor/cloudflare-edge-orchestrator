@@ -27,6 +27,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{630203
 		Images\Image9.png = Images\Image9.png
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F135EC22-CF6C-4D43-95BC-2E58755E7DE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cloudflare.UnitTests", "Cloudflare.UnitTests\Cloudflare.UnitTests.csproj", "{10FA1B6D-A9BE-443D-B166-F4363386A3E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,12 +41,17 @@ Global
 		{33FBC5A1-3466-4F10-B9A6-7186F804A65A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33FBC5A1-3466-4F10-B9A6-7186F804A65A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33FBC5A1-3466-4F10-B9A6-7186F804A65A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10FA1B6D-A9BE-443D-B166-F4363386A3E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10FA1B6D-A9BE-443D-B166-F4363386A3E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10FA1B6D-A9BE-443D-B166-F4363386A3E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10FA1B6D-A9BE-443D-B166-F4363386A3E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6302034E-DF8C-4B65-AC36-CED24C068999} = {1A6C93E7-24FD-47FD-883D-EDABF5CEE4C6}
+		{10FA1B6D-A9BE-443D-B166-F4363386A3E1} = {F135EC22-CF6C-4D43-95BC-2E58755E7DE4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E0FA12DA-6B82-4E64-928A-BB9965E636C1}
