@@ -18,3 +18,17 @@ The API token must have the following permissions:
 |Account:SSL|Yes|[List Certificate Packs](https://developers.cloudflare.com/api/resources/ssl/subresources/certificate_packs/methods/list/)|
 |Certificates:Read|Yes|[List Certificate Packs](https://developers.cloudflare.com/api/resources/ssl/subresources/certificate_packs/methods/list/)|
 
+## Configuring the Certificate Store
+
+When setting up your certificate store, you will be required to fill in the following properties on your certificate store:
+
+|Name|Value|
+|--|--|
+|Client Machine|Account ID|
+|Store Path|Zone ID|
+|Server Username|<can be anything, but is required to be filled in>|
+|Server Password|Either your Account API Token or User API Token|
+
+You can find your account ID and zone ID on the Cloudflare dashboard, located under your Account. Please refer to the [Cloudflare documentation](https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/) for more information.
+
+<img src="./docsource/cloudflare-account-id-zone-id.png" width="400" height="300" alt="Account and Zone ID"> 
