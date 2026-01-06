@@ -19,6 +19,7 @@ using Keyfactor.Extensions.Orchestrator.Cloudflare.Client;
 using Keyfactor.Logging;
 using Keyfactor.Orchestrators.Common.Enums;
 using Keyfactor.Orchestrators.Extensions;
+using Keyfactor.Orchestrators.Extensions.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Keyfactor.Extensions.Orchestrator.CloudflareEdge.Jobs;
@@ -27,23 +28,27 @@ public class Inventory : IInventoryJobExtension
 {
     private readonly ILogger _logger;
     private readonly ICertificateRetrievalService _certificateService;
+    private readonly IPAMSecretResolver _pamSecretResolver;
+    
     private ICloudflareClient _cloudflareClient;
     
     private const string CloudflareHost = "www.cloudflare.com";
 
     // Default constructor used by Universal Orchestrator
-    public Inventory()
+    public Inventory(IPAMSecretResolver resolver)
     {
         _logger = LogHandler.GetClassLogger<Inventory>();
         _certificateService = new CertificateRetrievalService(_logger);
+        _pamSecretResolver = resolver;
     }
 
     // Constructor for dependency injection (used by unit tests)
-    public Inventory(ILogger logger, ICloudflareClient cloudflareClient, ICertificateRetrievalService certificateRetrievalService)
+    public Inventory(ILogger logger, ICloudflareClient cloudflareClient, ICertificateRetrievalService certificateRetrievalService, IPAMSecretResolver resolver)
     {
         _logger = logger;
         _cloudflareClient = cloudflareClient;
         _certificateService = certificateRetrievalService;
+        _pamSecretResolver = resolver;
     }
 
     public string ExtensionName => "Keyfactor.Extensions.Orchestrator.CloudflareEdge.Inventory";
@@ -186,7 +191,7 @@ public class Inventory : IInventoryJobExtension
         if (_cloudflareClient == null)
         {
             _logger.LogDebug($"Configuring Cloudflare client with provided API key.");
-            var apiKey = jobConfiguration.ServerPassword;
+            var apiKey = ResolvePamField(jobConfiguration.ServerPassword, "Server Password");
             _cloudflareClient = new CloudflareClient(_logger, apiKey);
         }
         else
@@ -195,5 +200,15 @@ public class Inventory : IInventoryJobExtension
         }
         
         _logger.MethodExit();
+    }
+
+    private string ResolvePamField(string key, string description)
+    {
+        _logger.MethodEntry();
+        _logger.LogDebug($"Fetching {description} value from PAM");
+        var value = _pamSecretResolver.Resolve(key);
+        _logger.LogDebug($"Successfully fetched {description} value from PAM");
+        _logger.MethodExit();
+        return value;
     }
 }

@@ -20,6 +20,7 @@ using Keyfactor.Extensions.Orchestrator.Cloudflare.Client;
 using Keyfactor.Extensions.Orchestrator.CloudflareEdge.Jobs;
 using Keyfactor.Orchestrators.Common.Enums;
 using Keyfactor.Orchestrators.Extensions;
+using Keyfactor.Orchestrators.Extensions.Interfaces;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -31,9 +32,11 @@ namespace Cloudflare.UnitTests;
 
 public class InventoryTests
 {
-    private readonly Mock<ICertificateRetrievalService> _mockCertificateRetrievalService;
-    private readonly Mock<ICloudflareClient> _mockCloudflareClient;
-    private readonly Mock<SubmitInventoryUpdate> _mockSubmitInventoryUpdate;
+    private readonly Mock<ICertificateRetrievalService> _mockCertificateRetrievalService = new ();
+    private readonly Mock<ICloudflareClient> _mockCloudflareClient = new ();
+    private readonly Mock<SubmitInventoryUpdate> _mockSubmitInventoryUpdate = new ();
+    private readonly Mock<IPAMSecretResolver> _mockPamSecretResolver = new ();
+    
     private readonly Inventory _sut;
     private readonly string _testCertificatePem;
     
@@ -44,11 +47,7 @@ public class InventoryTests
                 .SetMinimumLevel(LogLevel.Trace));
         var logger = loggerFactory.CreateLogger<InventoryTests>();
         
-        _mockCertificateRetrievalService = new Mock<ICertificateRetrievalService>();
-        _mockCloudflareClient = new Mock<ICloudflareClient>();
-        _mockSubmitInventoryUpdate = new Mock<SubmitInventoryUpdate>();
-        
-        _sut = new Inventory(logger, _mockCloudflareClient.Object, _mockCertificateRetrievalService.Object);
+        _sut = new Inventory(logger, _mockCloudflareClient.Object, _mockCertificateRetrievalService.Object, _mockPamSecretResolver.Object);
         
         // Load test certificate once for all tests
         _testCertificatePem = LoadCertificate("example_certificate.crt");
