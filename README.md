@@ -278,7 +278,7 @@ When setting up your certificate store, you will be required to fill in the foll
 |--|--|
 |Client Machine|Account ID|
 |Store Path|Zone ID|
-|Server Username|<can be anything, but is required to be filled in>|
+|Server Username|<not used, can be set to No Value or an arbitrary value>|
 |Server Password|Either your Account API Token or User API Token|
 
 You can find your account ID and zone ID on the Cloudflare dashboard, located under your Account. Please refer to the [Cloudflare documentation](https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/) for more information.
