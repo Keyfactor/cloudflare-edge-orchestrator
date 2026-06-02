@@ -5,9 +5,9 @@
 <p align="center">
   <!-- Badges -->
 <img src="https://img.shields.io/badge/integration_status-production-3D1973?style=flat-square" alt="Integration Status: production" />
-<a href="https://github.com/Keyfactor/Cloudflare Edge Orchestrator/releases"><img src="https://img.shields.io/github/v/release/Keyfactor/Cloudflare Edge Orchestrator?style=flat-square" alt="Release" /></a>
-<img src="https://img.shields.io/github/issues/Keyfactor/Cloudflare Edge Orchestrator?style=flat-square" alt="Issues" />
-<img src="https://img.shields.io/github/downloads/Keyfactor/Cloudflare Edge Orchestrator/total?style=flat-square&label=downloads&color=28B905" alt="GitHub Downloads (all assets, all releases)" />
+<a href="https://github.com/Keyfactor/cloudflare-edge-orchestrator/releases"><img src="https://img.shields.io/github/v/release/Keyfactor/cloudflare-edge-orchestrator?style=flat-square" alt="Release" /></a>
+<img src="https://img.shields.io/github/issues/Keyfactor/cloudflare-edge-orchestrator?style=flat-square" alt="Issues" />
+<img src="https://img.shields.io/github/downloads/Keyfactor/cloudflare-edge-orchestrator/total?style=flat-square&label=downloads&color=28B905" alt="GitHub Downloads (all assets, all releases)" />
 </p>
 
 <p align="center">
@@ -159,9 +159,9 @@ the Keyfactor Command Portal
 
 1. **Download the latest Cloudflare Edge Universal Orchestrator extension from GitHub.**
 
-    Navigate to the [Cloudflare Edge Universal Orchestrator extension GitHub version page](https://github.com/Keyfactor/Cloudflare Edge Orchestrator/releases/latest). Refer to the compatibility matrix below to determine which asset should be downloaded. Then, click the corresponding asset to download the zip archive.
+    Navigate to the [Cloudflare Edge Universal Orchestrator extension GitHub version page](https://github.com/Keyfactor/cloudflare-edge-orchestrator/releases/latest). Refer to the compatibility matrix below to determine which asset should be downloaded. Then, click the corresponding asset to download the zip archive.
 
-   | Universal Orchestrator Version | Latest .NET version installed on the Universal Orchestrator server | `rollForward` condition in `Orchestrator.runtimeconfig.json` | `Cloudflare Edge Orchestrator` .NET version to download |
+   | Universal Orchestrator Version | Latest .NET version installed on the Universal Orchestrator server | `rollForward` condition in `Orchestrator.runtimeconfig.json` | `cloudflare-edge-orchestrator` .NET version to download |
    | --------- | ----------- | ----------- | ----------- |
    | Older than `11.0.0` | | | `net6.0` |
    | Between `11.0.0` and `11.5.1` (inclusive) | `net6.0` | | `net6.0` |
@@ -180,10 +180,10 @@ the Keyfactor Command Portal
 
 3. **Create a new directory for the Cloudflare Edge Universal Orchestrator extension inside the extensions directory.**
 
-    Create a new directory called `Cloudflare Edge Orchestrator`.
+    Create a new directory called `cloudflare-edge-orchestrator`.
     > The directory name does not need to match any names used elsewhere; it just has to be unique within the extensions directory.
 
-4. **Copy the contents of the downloaded and unzipped assemblies from __step 2__ to the `Cloudflare Edge Orchestrator` directory.**
+4. **Copy the contents of the downloaded and unzipped assemblies from __step 2__ to the `cloudflare-edge-orchestrator` directory.**
 
 5. **Restart the Universal Orchestrator service.**
 
